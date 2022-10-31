@@ -9,7 +9,7 @@
 #             |-app1
 #             |-app2
 # 此时workBasePath如下：
-# workBasePath=/home/admin/workspace
+# workBasePath=/
 
 workBasePath=/home/admin/workspace
 echo "只能修改 workBasePath 下一级目录的地址，多级目录无法修改"
