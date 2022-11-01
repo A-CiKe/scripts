@@ -1,0 +1,142 @@
+version: '3.5'
+services:
+  namesrv1:
+    image: rocketmqinc/rocketmq:4.3.0
+    container_name: namesrv1
+    ports:
+      - 9876:9876
+    volumes:
+      - ./namesvr1-log:/opt/logs
+      - ./namesvr1-data:/opt/store
+    command: sh mqnamesrv
+    networks:
+      rocketmq:
+        aliases:
+          - namesrv1
+  namesrv2:
+    image: rocketmqinc/rocketmq:4.3.0
+    container_name: namesrv2
+    ports:
+      - 9877:9876
+    volumes:
+      - ./namesvr2-log:/opt/logs
+      - ./namesvr2-data:/opt/store
+    command: sh mqnamesrv
+    networks:
+      rocketmq:
+        aliases:
+          - namesrv2
+  broker-m-1:
+    image: rocketmqinc/rocketmq:4.3.0
+    container_name: broker-m-1
+    links:
+      - namesrv1:namesrv1
+      - namesrv2:namesrv2
+    ports:
+      - 10909:10909
+      - 10911:10911
+      - 10912:10912
+    environment:
+      TZ: Asia/Shanghai
+      NAMESRV_ADDR: "namesrv1:9876;namesrv2:9876"
+      JAVA_OPTS: "-Duser.home=/opt"
+      JAVA_OPT_EXT: "-server -Xms256m -Xmx256m -Xmn256m"
+    volumes:
+      - ./brokerM1-log:/opt/logs
+      - ./brokerM1-data:/opt/store
+      - ./conf/broker-m-1.conf:/opt/rocketmq-4.3.0/conf/broker-m-1.conf
+    command: sh mqbroker -c /opt/rocketmq-4.3.0/conf/broker-m-1.conf autoCreateTopicEnable=true &
+    networks:
+      rocketmq:
+        aliases:
+          - broker-m-1
+  broker-s-1:
+    image: rocketmqinc/rocketmq:4.3.0
+    container_name: broker-s-1
+    links:
+      - namesrv1:namesrv1
+      - namesrv2:namesrv2
+    ports:
+      - 11909:10909
+      - 11911:11911
+      - 11912:10912
+    environment:
+      TZ: Asia/Shanghai
+      NAMESRV_ADDR: "namesrv1:9876;namesrv2:9876"
+      JAVA_OPTS: "-Duser.home=/opt"
+      JAVA_OPT_EXT: "-server -Xms256m -Xmx256m -Xmn256m"
+    volumes:
+      - ./brokerS1-log:/opt/logs
+      - ./brokerS1-data:/opt/store
+      - ./conf/broker-s-1.conf:/opt/rocketmq-4.3.0/conf/broker-s-1.conf
+    command: sh mqbroker -c /opt/rocketmq-4.3.0/conf/broker-s-1.conf autoCreateTopicEnable=true &
+    networks:
+      rocketmq:
+        aliases:
+          - broker-s-1
+  broker-m-2:
+    image: rocketmqinc/rocketmq:4.3.0
+    container_name: broker-m-2
+    links:
+      - namesrv1:namesrv1
+      - namesrv2:namesrv2
+    ports:
+      - 12909:10909
+      - 12911:12911
+      - 12912:10912
+    environment:
+      TZ: Asia/Shanghai
+      NAMESRV_ADDR: "namesrv1:9876;namesrv2:9876"
+      JAVA_OPTS: "-Duser.home=/opt"
+      JAVA_OPT_EXT: "-server -Xms256m -Xmx256m -Xmn256m"
+    volumes:
+      - ./brokerM2-log:/opt/logs
+      - ./brokerM2-data:/opt/store
+      - ./conf/broker-m-2.conf:/opt/rocketmq-4.3.0/conf/broker-m-2.conf
+    command: sh mqbroker -c /opt/rocketmq-4.3.0/conf/broker-m-2.conf autoCreateTopicEnable=true &
+    networks:
+      rocketmq:
+        aliases:
+          - broker-m-2
+  broker-s-2:
+    image: rocketmqinc/rocketmq:4.3.0
+    container_name: broker-s-2
+    links:
+      - namesrv1:namesrv1
+      - namesrv2:namesrv2
+    ports:
+      - 13909:10909
+      - 13911:13911
+      - 13912:10912
+    environment:
+      TZ: Asia/Shanghai
+      NAMESRV_ADDR: "namesrv1:9876;namesrv2:9876"
+      JAVA_OPTS: "-Duser.home=/opt"
+      JAVA_OPT_EXT: "-server -Xms256m -Xmx256m -Xmn256m"
+    volumes:
+      - ./brokerS2-log:/opt/logs
+      - ./brokerS2-data:/opt/store
+      - ./conf/broker-s-2.conf:/opt/rocketmq-4.3.0/conf/broker-s-2.conf
+    command: sh mqbroker -c /opt/rocketmq-4.3.0/conf/broker-s-2.conf autoCreateTopicEnable=true &
+    networks:
+      rocketmq:
+        aliases:
+          - broker-s-2
+  rocketmq-console:
+    image: styletang/rocketmq-console-ng
+    container_name: rocketmq-console
+    links:
+      - namesrv1:namesrv1
+      - namesrv2:namesrv2
+    ports:
+      - 8090:8080
+    environment:
+      JAVA_OPTS: -Drocketmq.namesrv.addr=namesrv1:9876;namesrv2:9877 -Dcom.rocketmq.sendMessageWithVIPChannel=false
+    networks:
+      rocketmq:
+        aliases:
+          - rocketmq-console
+networks:
+  rocketmq:
+    name: rocketmq
+    driver: bridge
